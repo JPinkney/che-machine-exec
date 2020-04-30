@@ -11,6 +11,7 @@
   "author": "Oleksandr Andriienko",
   "license": "EPL-2.0",
   "devDependencies": {
+    "@types/node": "^13.13.4",
     "css-loader": "^0.28.9",
     "style-loader": "^0.20.1",
     "ts-loader": "^5.3.3",

@@ -34,7 +34,6 @@ export class CloudShellTerminal {
         // load xterm addons.
         this.fitAddon = new FitAddon();
         this.xterm.loadAddon(this.fitAddon);
-
         window.addEventListener("resize", () => {
             this.fitAddon.fit();
         }, false);

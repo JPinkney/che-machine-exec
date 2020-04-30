@@ -14,6 +14,7 @@ import { GenericNotificationHandler } from "vscode-jsonrpc";
 import { MachineExec, EXIT_METHOD, ERROR_METHOD, ExecExitEvent, ExecErrorEvent } from "./terminal-protocol";
 import { NotificationType } from 'vscode-ws-jsonrpc';
 import { ANSIControlSequences as CS } from './const';
+import * as fs from "fs";
 
 const terminalElem = document.getElementById('terminal-container');
 
@@ -39,6 +40,7 @@ rpcConnecton.create().then(connection => {
 
         connection.sendRequest<{}>('create', exec).then((value: {}) => {
             const id = value as number;
+            connection.sendRequest<{}>('createKubeConfig', {});
             const attachConnection = rpcConnecton.createReconnectionWebsocket(`${attachUrl}/${id}`);
 
             attachConnection.onopen = (event: Event) => {
