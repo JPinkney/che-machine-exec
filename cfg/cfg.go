@@ -72,7 +72,7 @@ func setLogLevel() {
 		}
 	} else {
 		logrus.Infof("Default 'info' log level is applied")
-		logrus.SetLevel(logrus.InfoLevel)
+		logrus.SetLevel(logrus.DebugLevel)
 	}
 }
 

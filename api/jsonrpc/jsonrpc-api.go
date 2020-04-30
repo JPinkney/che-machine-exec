@@ -13,7 +13,7 @@
 package jsonrpc
 
 import (
-	"github.com/eclipse/che-go-jsonrpc"
+	jsonrpc "github.com/eclipse/che-go-jsonrpc"
 	"github.com/eclipse/che-machine-exec/api/model"
 )
 
@@ -23,6 +23,7 @@ const (
 	CreateMethod = "create"
 	CheckMethod  = "check"
 	ResizeMethod = "resize"
+	// CreateKubeConfigMethod = "createKubeConfig"
 )
 
 // RPCRoutes defines json-rpc exec api. This api uses to manage exec's life cycle.
@@ -44,5 +45,10 @@ var RPCRoutes = jsonrpc.RoutesGroup{
 			Decode: jsonrpc.FactoryDec(func() interface{} { return &ResizeParam{} }),
 			Handle: jsonrpc.HandleRet(jsonRpcResizeExec),
 		},
+		// {
+		// 	Method: CreateKubeConfigMethod,
+		// 	Decode: jsonrpc.FactoryDec(func() interface{} { return &EmptyParam{} }),
+		// 	Handle: jsonRpcCreateKubeConfigExec,
+		// },
 	},
 }

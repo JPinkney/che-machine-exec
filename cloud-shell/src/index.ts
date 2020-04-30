@@ -40,7 +40,7 @@ rpcConnecton.create().then(connection => {
 
         connection.sendRequest<{}>('create', exec).then((value: {}) => {
             const id = value as number;
-            connection.sendRequest<{}>('createKubeConfig', {});
+            // connection.sendRequest<{}>('createKubeConfig', {});
             const attachConnection = rpcConnecton.createReconnectionWebsocket(`${attachUrl}/${id}`);
 
             attachConnection.onopen = (event: Event) => {

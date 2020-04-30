@@ -13,6 +13,7 @@
 package exec
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -22,6 +23,7 @@ import (
 	"github.com/eclipse/che-machine-exec/api/model"
 	"github.com/eclipse/che-machine-exec/client"
 	exec_info "github.com/eclipse/che-machine-exec/exec-info"
+	"github.com/eclipse/che-machine-exec/kubeconfig"
 	"github.com/eclipse/che-machine-exec/shell"
 )
 
@@ -86,6 +88,11 @@ func (cmdRslv *CmdResolver) ResolveCmd(exec model.MachineExec, containerInfo *mo
 }
 
 func (cmdRslv *CmdResolver) setUpExecShellPath(exec model.MachineExec, containerInfo *model.ContainerInfo) (shellPath string, err error) {
+	err = cmdRslv.injectKubeConfig(exec, containerInfo)
+	if err != nil {
+		return "", err
+	}
+
 	if containerShell, err := cmdRslv.DetectShell(containerInfo); err == nil && cmdRslv.shellIsDefined(containerShell) {
 		logrus.Debugf("Default shell %s for %s/%s is detected in /etc/passwd", containerShell, containerInfo.PodName, containerInfo.ContainerName)
 		return containerShell, nil
@@ -99,6 +106,32 @@ func (cmdRslv *CmdResolver) setUpExecShellPath(exec model.MachineExec, container
 	}
 
 	return shell.DefaultShell, nil
+}
+
+func (cmdRslv *CmdResolver) injectKubeConfig(exec model.MachineExec, containerInfo *model.ContainerInfo) error {
+	config := kubeconfig.CreateKubeConfig(exec.BearerToken, GetNamespace())
+	infoExec := cmdRslv.CreateInfoExec([]string{"sh", "-c", "echo $KUBECONFIG"}, containerInfo)
+	if err := infoExec.Start(); err != nil {
+		logrus.Debugf("Error is not available in %s/%s. Error: %s", containerInfo.PodName, containerInfo.ContainerName, err.Error())
+		return errors.New("Could not retrieve KUBECONFIG environment variable")
+	}
+	kubeconfigLocation := infoExec.GetOutput()
+	if kubeconfigLocation != "\n" {
+		kubeconfigDir := strings.Replace(kubeconfigLocation, "/config", "", 1)
+		infoExec = cmdRslv.CreateInfoExec([]string{"sh", "-c", "mkdir -p " + kubeconfigDir}, containerInfo)
+		if err := infoExec.Start(); err != nil {
+			logrus.Debugf("Error is not available in %s/%s. Error: %s", containerInfo.PodName, containerInfo.ContainerName, err.Error())
+			return errors.New("Could not create directory: " + kubeconfigDir)
+		}
+
+		infoExec = cmdRslv.CreateInfoExec([]string{"sh", "-c", "echo \"" + config + "\" > " + kubeconfigLocation}, containerInfo)
+		if err := infoExec.Start(); err != nil {
+			logrus.Debugf("Error is not available in %s/%s. Error: %s", containerInfo.PodName, containerInfo.ContainerName, err.Error())
+			return errors.New("Could not write kubeconfig to: " + kubeconfigLocation)
+		}
+	}
+
+	return nil
 }
 
 func (cmdRslv *CmdResolver) shellIsDefined(shell string) bool {

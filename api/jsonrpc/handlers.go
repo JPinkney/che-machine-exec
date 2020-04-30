@@ -22,7 +22,7 @@ import (
 
 	"strconv"
 
-	"github.com/eclipse/che-go-jsonrpc"
+	jsonrpc "github.com/eclipse/che-go-jsonrpc"
 	"github.com/eclipse/che-machine-exec/exec"
 )
 
@@ -44,6 +44,9 @@ type ResizeParam struct {
 	Id   int  `json:"id"`
 	Cols uint `json:"cols"`
 	Rows uint `json:"rows"`
+}
+
+type EmptyParam struct {
 }
 
 var (
@@ -105,3 +108,49 @@ func jsonRpcResizeExec(_ *jsonrpc.Tunnel, params interface{}) (interface{}, erro
 		Id: resizeParam.Id, Text: "Exec with id " + strconv.Itoa(resizeParam.Id) + "  was successfully resized",
 	}, nil
 }
+
+// func jsonRpcCreateKubeConfigExec(tunnel *jsonrpc.Tunnel, _ interface{}, t jsonrpc.RespTransmitter) {
+// 	config := ""
+
+// 	infoExecCreator := exec_info.NewKubernetesInfoExecCreator(exec.GetNamespace(), k8sAPI.GetClient().Core(), k8sAPI.GetConfig())
+
+// 	// Find the correct container or whatever then make another exec info request to find where to store it
+// 	// then store it basically like what serheii had
+
+// 	if cfg.UseBearerToken {
+// 		if token, ok := tunnel.Attributes[BearerTokenAttr]; ok && len(token) > 0 {
+// 			config = kubeconfig.CreateKubeConfig(token)
+// 			infoExec = infoExecCreator.CreateInfoExec([]string{"sh", "-c", "echo $KUBECONFIG"}, containerInfo)
+// 			if err := infoExec.Start(); err != nil {
+// 				logrus.Debugf("Error is not available in %s/%s. Error: %s", containerInfo.PodName, containerInfo.ContainerName, err.Error())
+// 				return
+// 			}
+// 			kubeconfigLocation := infoExec.GetOutput()
+
+// 			logrus.Debugf("Creating /tmp/.kube in %s/%s", containerInfo.PodName, containerInfo.ContainerName)
+// 			infoExec := infoExecCreator.CreateInfoExec([]string{"sh", "-c", "mkdir -p " + kubeconfigLocation}, containerInfo)
+// 			if err := infoExec.Start(); err != nil {
+// 				logrus.Debugf("Error is not available in %s/%s. Error: %s", containerInfo.PodName, containerInfo.ContainerName, err.Error())
+// 				return
+// 			}
+
+// 			logrus.Debugf("Writing token in /tmp/.kube/token in %s/%s", containerInfo.PodName, containerInfo.ContainerName)
+// 			infoExec = infoExecCreator.CreateInfoExec([]string{"sh", "-c", "echo " + config + " > " + kubeconfigLocation}, containerInfo)
+// 			if err := infoExec.Start(); err != nil {
+// 				logrus.Debugf("Error is not available in %s/%s. Error: %s", containerInfo.PodName, containerInfo.ContainerName, err.Error())
+// 				return
+// 			}
+
+// 			t.Send(config)
+// 		} else {
+// 			createTunneledError(errors.New("Bearer token should not be an empty"), t)
+// 		}
+// 	} else {
+// 		createTunneledError(errors.New("Kubeconfig environment variable was set but bearer token not used"), t)
+// 	}
+// }
+
+// func createTunneledError(err error, t jsonrpc.RespTransmitter) {
+// 	logrus.Errorf(err.Error())
+// 	t.SendError(jsonrpc.NewArgsError(err))
+// }

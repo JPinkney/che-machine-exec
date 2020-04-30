@@ -12,11 +12,9 @@
 package kubeconfig
 
 import (
-	"io/ioutil"
 	"net"
 	"os"
 
-	"github.com/eclipse/che-machine-exec/exec"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
@@ -64,7 +62,7 @@ func generateKubeConfig(token, server, namespace string) *KubeConfig {
 	return &KubeConfig{
 		APIVersion: "v1",
 		Clusters: []Clusters{
-			Clusters{
+			{
 				Cluster: ClusterInfo{
 					CertificateAuthority: "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt",
 					Server:               server,
@@ -73,7 +71,7 @@ func generateKubeConfig(token, server, namespace string) *KubeConfig {
 			},
 		},
 		Users: []Users{
-			Users{
+			{
 				Name: "developer",
 				User: User{
 					Token: token,
@@ -81,7 +79,7 @@ func generateKubeConfig(token, server, namespace string) *KubeConfig {
 			},
 		},
 		Contexts: []Contexts{
-			Contexts{
+			{
 				Context: Context{
 					Cluster:   server,
 					Namespace: namespace,
@@ -97,31 +95,19 @@ func generateKubeConfig(token, server, namespace string) *KubeConfig {
 
 // CreateKubeConfig creates a kubeconfig located at os.Getenv("KUBECONFIG") and puts in the
 // values specific to the user IFF KUBECONFIG env variable is set
-func CreateKubeConfig(token string) {
-	kubeConfigLocation := os.Getenv("KUBECONFIG")
-	if kubeConfigLocation == "" {
-		return
-	}
-
+func CreateKubeConfig(token, namespace string) string {
 	host, port := os.Getenv("KUBERNETES_SERVICE_HOST"), os.Getenv("KUBERNETES_SERVICE_PORT")
 	if host == "" || port == "" {
-		return
+		return ""
 	}
 
-	namespace := exec.GetNamespace()
-
 	server := "https://" + net.JoinHostPort(host, port)
-	kubeconfig := generateKubeConfig(token, server, string(namespace))
+	kubeconfig := generateKubeConfig(token, server, namespace)
 
 	bytes, err := yaml.Marshal(&kubeconfig)
 	if err != nil {
 		logrus.Error("error: %v", err)
-		return
+		return ""
 	}
-
-	err = ioutil.WriteFile(kubeConfigLocation, bytes, 0655)
-	if err != nil {
-		logrus.Error("error: %v", err)
-		return
-	}
+	return string(bytes)
 }
